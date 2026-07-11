@@ -9,25 +9,13 @@
 <!--@css(/css/pick-options.css)-->
 <!--@js(/js/pick-options-config.js)-->
 <!--@js(/js/pick-options.js)-->
-
-<div class="path" module="product_headcategory">
-    <span>현재 위치</span>
-    <ol>
-        <li><a href="/">홈</a></li>
-        <li class="{$disp_cate_1|display}"><a href="{$link_product_list_1}">{$name_1}</a></li>
-        <li class="{$disp_cate_2|display}"><a href="{$link_product_list_2}">{$name_2}</a></li>
-        <li class="{$disp_cate_3|display}"><a href="{$link_product_list_3}">{$name_3}</a></li>
-        <li class="{$disp_cate_4|display}"><strong><a href="{$link_product_list_4}">{$name_4}</a></strong></li>
-    </ol>
-</div>
-
 <div module="product_detail">
     <!--@css(/css/module/product/detail.css)-->
     <!--
 		$coupon_download_page = /coupon/coupon_productdetail.html
     -->
     <div class="headingArea">
-        <h2>[{$product_code}] {$name}</h2>
+        <h2>[{$ma_product_code}] {$name}</h2>
         <span class="delivery {$delvtype_display|display}">(해외배송 가능상품)</span>
         <span class="icon">{$soldout_icon} {$stock_icon} {$recommend_icon} {$new_icon} {$product_icons} {$today_arrival_icon} {$pickup_icon} {$benefit_icons} <img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/ico_rental.png" alt="" class="{$rental_information_display|display}"> {$regular_delivery_icon} {$cultural_tax_icon}</span>
         <!-- 공급사 바로가기버튼 영역 -->
@@ -206,7 +194,7 @@
                     <li>
                         <div class="information">
                             <div class="thumbnail"><a href="/product/detail.html?product_no={$product_no}"><img src="{$product_image}" alt="" id="{$image_id}" /></a></div>
-                            <p class="name" title="상품명"><strong><a href="{$link_bind_product_detail}">{$product_name}</a></strong> <span class="{$set_quantity_display|display}">({$set_quantity}개씩 구매되는 상품)</span></p>
+                            <p class="name" title="상품명"><strong><a href="{$link_bind_product_detail}">{$ma_product_code} {$product_name}</a></strong> <span class="{$set_quantity_display|display}">({$set_quantity}개씩 구매되는 상품)</span></p>
                             <p class="price {$product_price_display|display}" title="판매가"><strong class="{$product_price_del}">{$product_price}{$product_tax_type_text}</strong></p>
                             <p class="salePrice {$product_sale_price_display|display}" title="할인판매가">{$product_sale_price}</p>
                             <div class="stock">
@@ -350,7 +338,7 @@
                     <li>
                         <div class="information">
                             <div class="thumbnail"><a href="{$link_product_detail}"><img src="{$product_image}" alt="" id="{$image_id}" /></a></div>
-                            <p class="name" title="상품명"><strong>{$product_name}</strong></p>
+                            <p class="name" title="상품명"><strong>{$ma_product_code} {$product_name}</strong></p>
                             <p class="price {$product_price_display|display}" title="판매가"><strong class="{$product_price_del}">{$product_price}{$product_tax_type_text}</strong></p>
                             <p class="salePrice {$product_sale_price_display|display}" title="할인판매가">{$product_sale_price}</p>
                         </div>
@@ -399,7 +387,7 @@
                     <li>
                         <div class="information">
                             <div class="thumbnail"><a href="{$link_product_detail}"><img src="{$product_image}" alt="" id="{$image_id}" /></a></div>
-                            <p class="name" title="상품명"><strong>{$product_name}</strong></p>
+                            <p class="name" title="상품명"><strong>{$ma_product_code} {$product_name}</strong></p>
                             <p class="price {$product_price_display|display}" title="판매가"><strong class="{$product_price_del}">{$product_price}{$product_tax_type_text}</strong></p>
                             <p class="salePrice {$product_sale_price_display|display}" title="할인판매가">{$product_sale_price}</p>
                         </div>

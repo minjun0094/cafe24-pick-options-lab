@@ -8,16 +8,16 @@
   --pick-radius: 4px;
 }
 
-/* 베이직 스킨의 사이드바 예약 폭을 제거한 상품 상세 전용 레이아웃 */
+/* 모바일 스킨에서는 고정 폭을 만들지 않고 옵션 영역만 화면 폭을 사용한다. */
 body #wrap #container {
-  width: 1014px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+  width: auto !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
 }
 
 body #wrap #container #contents {
   float: none !important;
-  width: 100% !important;
+  width: auto !important;
 }
 
 .pick-options,
@@ -686,21 +686,29 @@ body #wrap #container #contents {
   grid-row: 1;
 }
 
-.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up {
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .qtyUp,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .eProductQuantityUpClass {
   grid-column: 3;
   grid-row: 1;
 }
 
 .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .down::after { content: '−'; }
-.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up::after { content: '+'; }
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up::after,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .qtyUp::after,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .eProductQuantityUpClass::after { content: '+'; }
 .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity img { display: none; }
 
-.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up.is-limit-disabled {
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up.is-limit-disabled,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .qtyUp.is-limit-disabled,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .eProductQuantityUpClass.is-limit-disabled {
   background: #f2f2f2;
   cursor: not-allowed;
 }
 
-.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up.is-limit-disabled::after {
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up.is-limit-disabled::after,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .qtyUp.is-limit-disabled::after,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .eProductQuantityUpClass.is-limit-disabled::after {
   color: #bbb;
 }
 
@@ -825,22 +833,52 @@ body #wrap #container #contents {
 
 @media (max-width: 767px) {
   .pick-options {
-    margin: 16px 0;
+    width: 100%;
+    margin: 14px 0 20px;
+    padding: 0;
   }
 
   .pick-options__toggle {
     min-height: 44px;
+    padding: 0 12px;
   }
 
   .pick-options__card {
-    grid-template-columns: 24px minmax(62px, max-content) minmax(0, 1fr);
+    grid-template-columns: 22px minmax(58px, max-content) minmax(0, 1fr);
     gap: 8px;
+    min-height: 62px;
+    padding: 10px 8px;
+  }
+
+  .pick-options__flavor-picker {
+    display: flex;
+    max-height: min(620px, 72vh);
+    overflow: hidden;
+    flex-direction: column;
+    border-radius: 6px;
+  }
+
+  .pick-options__flavor-picker[hidden] {
+    display: none;
+  }
+
+  .pick-options__flavor-head {
+    flex: 0 0 auto;
+    padding: 10px 12px;
+  }
+
+  .pick-options__flavor-list {
+    max-height: none;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .pick-options__flavor-row {
     grid-template-columns: 44px minmax(0, 1fr) 66px;
-    gap: 10px;
-    padding-right: 8px;
+    gap: 8px;
+    min-height: 78px;
+    padding: 8px;
   }
 
   .pick-options__flavor-image {
@@ -859,12 +897,124 @@ body #wrap #container #contents {
   }
 
   .pick-options__flavor-footer {
+    position: relative;
+    z-index: 2;
+    flex: 0 0 auto;
     align-items: stretch;
     flex-direction: column;
+    box-shadow: 0 -1px 0 var(--pick-line);
   }
 
   .pick-options__complete {
     width: 100%;
+    min-height: 46px;
+  }
+
+  .pick-options__selected-heading {
+    margin: 16px 12px 8px;
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 10px 12px;
+    margin: 0 12px 10px;
+    width: calc(100% - 24px);
+    padding: 12px;
+  }
+
+  /* 모바일 카페24는 상품명·수량을 첫 번째 td 안에 함께 생성한다. */
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item > td:first-child {
+    display: contents !important;
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-summary {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-width: 0;
+    padding-right: 24px;
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity {
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+    justify-self: start;
+    grid-template-columns: 28px 30px 28px !important;
+    width: 86px !important;
+    height: 30px !important;
+    margin: 0 !important;
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity input {
+    position: static !important;
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    width: 30px !important;
+    height: 28px !important;
+    margin: 0 !important;
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .down {
+    position: static !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up,
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .qtyUp,
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .eProductQuantityUpClass {
+    position: static !important;
+    grid-column: 3 !important;
+    grid-row: 1 !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item > td:nth-child(2),
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item > td.right {
+    grid-column: 2;
+    grid-row: 2;
+    align-self: center;
+    min-width: 82px;
+    padding: 0 !important;
+    color: var(--pick-ink) !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    text-align: right !important;
+    white-space: nowrap;
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item > td:last-child {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px !important;
+    padding: 0 !important;
+  }
+
+  .pick-options__shipping {
+    margin: 16px 12px 10px;
+  }
+
+  .pick-options__toast {
+    position: fixed;
+    z-index: 1001;
+    right: auto;
+    bottom: 86px;
+    left: 50%;
+    width: max-content;
+    max-width: calc(100vw - 32px);
+    margin: 0;
+    justify-content: center;
+    white-space: nowrap;
+    transform: translate(-50%, 12px);
+  }
+
+  .pick-options__toast.is-visible {
+    transform: translate(-50%, 0);
   }
 }
 

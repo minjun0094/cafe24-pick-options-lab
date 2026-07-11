@@ -208,13 +208,70 @@
     totalProducts.insertBefore(selectedHeading, totalProducts.firstChild);
     totalProducts.insertAdjacentElement('afterend', toast);
     let toastTimer = null;
+
+    function quantityUpButton(row) {
+      return row && row.querySelector(
+        '.quantity .up, .quantity .qtyUp, .quantity .eProductQuantityUpClass, ' +
+        '.quantity a[class*="QuantityUp"], .quantity a[class*="qtyUp"]'
+      );
+    }
+
+    let isEnforcingQuantityLimit = false;
+
+    function enforceQuantityLimits() {
+      if (isEnforcingQuantityLimit) return false;
+      isEnforcingQuantityLimit = true;
+      let corrected = false;
+
+      config.bundles.forEach(function enforceBundle(bundle) {
+        const state = controller.getState().find(function matchingState(candidate) {
+          return candidate.quantity === bundle.quantity;
+        });
+        const maxCount = state ? state.maxCount : bundle.options.length;
+        const optionValues = bundle.options.map(function optionValue(option) { return option.value; });
+        const entries = Array.from(totalProducts.querySelectorAll(config.selectors.selectedItemCode))
+          .filter(function bundleEntry(input) { return optionValues.includes(input.value); })
+          .map(function quantityEntry(input) {
+            const row = input.closest('tr');
+            const quantityInput = row && row.querySelector('.quantity input, input.quantity_opt');
+            return { row: row, input: quantityInput };
+          })
+          .filter(function validEntry(entry) { return Boolean(entry.input); });
+
+        let remaining = maxCount;
+        entries.forEach(function clampEntry(entry, index) {
+          const current = Math.max(1, Number(entry.input.value) || 1);
+          const remainingRows = entries.length - index - 1;
+          const allowed = Math.max(1, Math.min(current, remaining - remainingRows));
+          remaining = Math.max(0, remaining - allowed);
+          if (current <= allowed) return;
+
+          entry.input.value = String(allowed);
+          entry.input.setAttribute('value', String(allowed));
+          entry.input.dispatchEvent(new Event('input', { bubbles: true }));
+          entry.input.dispatchEvent(new Event('change', { bubbles: true }));
+          corrected = true;
+        });
+      });
+
+      isEnforcingQuantityLimit = false;
+      if (corrected) {
+        notice.textContent = '같은 개입수는 최대 2회까지 선택할 수 있습니다.';
+        window.setTimeout(function quantityCorrectionCompleted() {
+          sync();
+          renderCompleted();
+        }, 0);
+      }
+      return corrected;
+    }
     section.querySelector('#pick-options-heading').textContent = config.ui.heading;
     section.querySelector('.pick-options__description').textContent = config.ui.description;
 
     function nativeTotalAmount() {
-      const amountElement = totalPrice.querySelector('.total strong em');
-      const digits = (amountElement ? amountElement.textContent : '0').replace(/[^0-9]/g, '');
-      return Number(digits) || 0;
+      const amountElement = totalPrice.querySelector('.total strong em, strong.price, .price');
+      const amountText = amountElement ? amountElement.textContent : '0';
+      const amountMatch = amountText.match(/[0-9][0-9,]*/);
+      return amountMatch ? Number(amountMatch[0].replace(/,/g, '')) : 0;
     }
 
     function nativeFreeShippingThreshold() {
@@ -241,9 +298,8 @@
       } else {
         shippingMessage.textContent = config.shippingProgress.completeMessage;
       }
-      const thresholdInManwon = threshold / 10000;
       shipping.querySelector('.pick-options__shipping-threshold').textContent =
-        formatNumber.format(thresholdInManwon) + config.shippingProgress.thresholdUnit;
+        formatNumber.format(threshold) + config.ui.currency;
       shipping.classList.toggle('is-complete', remaining === 0);
     }
 
@@ -455,7 +511,7 @@
     function syncNativeQuantityControls() {
       Array.from(totalProducts.querySelectorAll(config.selectors.selectedItemCode)).forEach(function syncRow(input) {
         const row = input.closest('tr');
-        const up = row && row.querySelector('.quantity .up');
+        const up = quantityUpButton(row);
         const state = controller.stateForOptionValue(input.value);
         if (!up || !state) return;
         const limited = state.selectedCount >= state.maxCount;
@@ -583,7 +639,10 @@
     }, true);
 
     totalProducts.addEventListener('click', function guardNativeQuantity(event) {
-      const up = event.target.closest('.quantity .up');
+      const up = event.target.closest(
+        '.quantity .up, .quantity .qtyUp, .quantity .eProductQuantityUpClass, ' +
+        '.quantity a[class*="QuantityUp"], .quantity a[class*="qtyUp"]'
+      );
       if (up) {
         const row = up.closest('tr');
         const itemCode = row && row.querySelector(config.selectors.selectedItemCode);
@@ -596,9 +655,10 @@
         }
       }
       window.setTimeout(function quantityClickCompleted() {
+        enforceQuantityLimits();
         sync();
         renderCompleted();
-      }, 0);
+      }, 60);
     }, true);
 
     totalProducts.addEventListener('input', function clampNativeQuantity(event) {
@@ -615,10 +675,24 @@
       const otherUsed = Math.max(0, state.selectedCount - ownQuantity);
       const allowed = Math.max(1, state.maxCount - otherUsed);
       if (current > allowed) quantityInput.value = String(allowed);
-      window.setTimeout(sync, 0);
+      window.setTimeout(function quantityInputCompleted() {
+        enforceQuantityLimits();
+        sync();
+        renderCompleted();
+      }, 0);
+    }, true);
+
+    totalProducts.addEventListener('change', function quantityChangeCompleted(event) {
+      if (!event.target.closest('.quantity input, input.quantity_opt')) return;
+      window.setTimeout(function enforceChangedQuantity() {
+        enforceQuantityLimits();
+        sync();
+        renderCompleted();
+      }, 0);
     }, true);
 
     const observer = new MutationObserver(function selectedProductsChanged() {
+      enforceQuantityLimits();
       sync();
       renderCompleted();
     });

@@ -23,7 +23,7 @@
       deliveryPrice: '.delv_price_B',
       selectedProduct: '#totalProducts tr.option_product',
       selectedItemCode: 'input.option_box_id[name="item_code[]"]',
-      purchaseButton: '.xans-product-detail .infoArea .ec-base-button.gColumn a[onclick^="product_submit"]',
+      purchaseButton: '#actionCart, #actionCartClone, .xans-product-action .ec-base-button.gColumn a.btnStrong, #orderFixArea .ec-base-button.gColumn a.btnStrong',
     },
     option: {
       valueAttribute: 'option_value',
