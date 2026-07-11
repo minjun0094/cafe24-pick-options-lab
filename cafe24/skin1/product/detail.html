@@ -6,9 +6,9 @@
     $jointbuy_page = /product/jointbuy.html
 -->
 <!-- 골라담기 -->
-<link rel="stylesheet" href="https://ecimg.cafe24img.com/pg3139b63113993048/minjun077/egnis/pick-options.css">
-<script defer src="https://ecimg.cafe24img.com/pg3139b63113993048/minjun077/egnis/pick-options-config.js"></script>
-<script defer src="https://ecimg.cafe24img.com/pg3139b63113993048/minjun077/egnis/pick-options.js"></script>
+<!--@css(/css/pick-options.css)-->
+<!--@js(/js/pick-options-config.js)-->
+<!--@js(/js/pick-options.js)-->
 
 <div class="path" module="product_headcategory">
     <span>현재 위치</span>
@@ -46,36 +46,10 @@
                     <a href="/product/image_zoom2.html{$zoom_param}" alt="{$product_code}" onclick="window.open(this.href, 'image_zoom2', 'toolbar=no,scrollbars=auto,resizable=yes,width=450,height=693,left=0,top=0', this);return false;">
                         <img src="{$big_img}" alt="{$seo_alt_tag}" class="{$big_img_class} {$img_display|display}" /><span module="product_Imagestyle"><span class="prdIcon {$icon_class_name}" style="background-image:url('{$icon_url}');"></span></span>
                     </a>
-                    <span class="wish">{$wish_icon}</span>
-                    <div id="zoom_wrap"></div>
-                </div>
-            </div>
-
-            <div class="listImg" module="product_addimage">
-                <ul>
-                    <li>{$add_img}</li>
-                    <li>{$add_img}</li>
-                </ul>
-            </div>
-            <div class="control">
-                <a href="/product/image_zoom2.html{$zoom_param}" class="btnZoom" onclick="window.open(this.href, 'image_zoom2', 'toolbar=no,scrollbars=auto,resizable=yes,width=560,height=710,left=0,top=0', this);return false;"><img src="//img.echosting.cafe24.com/skin/base/common/btn_icon_zoom.gif" alt="" /> 확대보기</a>
-            </div>
-
-
-            <div class="color {$colorchip_display|display}">
-                <div module="product_Colorchip">
-                    <span class="chips" style="background-color:{$color}"></span>
-                    <span class="chips" style="background-color:{$color}"></span>
                 </div>
             </div>
 
             <!--@import(/product/shoppQ/hashtag.html)-->
-
-            <div class="ec-base-button gColumn" module="product_action">
-                <a href="#none" class="btnNormal sizeM" onclick="{$action_recommend}">추천메일 보내기</a>
-                <a href="#none" class="btnNormal sizeM {$request_display|display}" onclick="{$action_request}">상품조르기</a>
-                <a href="/board/inquiry/write.html{$inquiry_param}" class="btnNormal sizeM {$inquiry_display|display}">대량구매문의</a>
-            </div>
 
             <div class="likeButton {$disp_likeprd_class}">
                 <button type="button"><span class="title">좋아요</span>{$disp_likeprd_icon}<span class="count">{$disp_likeprd_count}</span></button>
