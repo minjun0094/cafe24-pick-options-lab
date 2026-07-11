@@ -1,0 +1,139 @@
+:root {
+  --pick-options-accent: #111;
+  --pick-options-border: #d9d9d9;
+  --pick-options-muted: #767676;
+  --pick-options-surface: #fff;
+  --pick-options-selected-surface: #f4f4f4;
+  --pick-options-radius: 8px;
+}
+
+.pick-options {
+  box-sizing: border-box;
+  margin: 24px 0;
+  color: #222;
+  font-family: inherit;
+}
+
+.pick-options *,
+.pick-options *::before,
+.pick-options *::after {
+  box-sizing: inherit;
+}
+
+.pick-options__heading {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.pick-options__description {
+  margin: 6px 0 20px;
+  color: var(--pick-options-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.pick-options__groups {
+  display: grid;
+  gap: 16px;
+}
+
+.pick-options__group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.pick-options__quantity {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.pick-options__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.pick-options__option {
+  position: relative;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--pick-options-border);
+  border-radius: var(--pick-options-radius);
+  background: var(--pick-options-surface);
+  color: inherit;
+  font: inherit;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.pick-options__option:hover:not(:disabled) {
+  border-color: var(--pick-options-accent);
+}
+
+.pick-options__option:focus-visible {
+  outline: 2px solid var(--pick-options-accent);
+  outline-offset: 2px;
+}
+
+.pick-options__option.is-selected,
+.pick-options__option[aria-pressed='true'] {
+  border-color: var(--pick-options-accent);
+  background: var(--pick-options-selected-surface);
+  box-shadow: inset 0 0 0 1px var(--pick-options-accent);
+}
+
+.pick-options__option:disabled {
+  color: #aaa;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.pick-options__variant {
+  display: block;
+  font-weight: 600;
+}
+
+.pick-options__status {
+  display: block;
+  margin-top: 3px;
+  color: var(--pick-options-muted);
+  font-size: 11px;
+}
+
+.pick-options__option:disabled .pick-options__status {
+  color: #b42318;
+}
+
+/* 스크립트 초기화에 성공한 경우에만 기존 옵션 UI를 감춘다. */
+.pick-options-enhanced .xans-product-option {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@media (max-width: 480px) {
+  .pick-options__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pick-options__option {
+    transition: none;
+  }
+}
