@@ -3,3 +3,4 @@
 .sftp.json
 node_modules/
 docs/DECISIONS.md
+docs/QA.md
