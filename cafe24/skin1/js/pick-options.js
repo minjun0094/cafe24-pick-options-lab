@@ -63,6 +63,10 @@
 
     function selectedEntries() {
       return Array.from(totalProducts.querySelectorAll(config.selectors.selectedItemCode))
+        .filter(function activeSelectedEntry(input) {
+          const row = input.closest('tr');
+          return Boolean(row && row.isConnected && !row.hidden && window.getComputedStyle(row).display !== 'none');
+        })
         .map(function selectedEntry(input) {
           const row = input.closest('tr');
           const quantityInput = row && row.querySelector('.quantity input');
@@ -374,10 +378,15 @@
       flavorPicker.querySelector('.pick-options__flavor-total-row span').textContent = config.ui.totalLabel;
       const selectionGuide = flavorPicker.querySelector('.pick-options__selection-guide');
       const remaining = Math.max(0, draft.bundle.quantity - (currentUnits * config.flavorUnitQuantity));
-      selectionGuide.textContent = template(config.ui.selectionGuideTemplate, {
+      const guideValues = {
         current: currentUnits * config.flavorUnitQuantity,
         remaining: remaining,
-      });
+      };
+      selectionGuide.textContent = template(config.ui.selectionGuideCurrentTemplate, guideValues);
+      const guideEmphasis = document.createElement('strong');
+      guideEmphasis.textContent = template(config.ui.selectionGuideRemainingTemplate, guideValues);
+      selectionGuide.appendChild(guideEmphasis);
+      selectionGuide.appendChild(document.createTextNode(config.ui.selectionGuideSuffix));
       selectionGuide.hidden = remaining === 0;
       const completeButton = flavorPicker.querySelector('.pick-options__complete');
       completeButton.textContent = config.ui.completeLabel;
@@ -388,6 +397,33 @@
       return selection.flavors.map(function flavorText(entry) {
         return entry.name + '(' + config.ui.flavorUnitLabel + ')×' + entry.count;
       }).join(' + ');
+    }
+
+    function hasActiveNativeSelection(optionValue) {
+      return Array.from(totalProducts.querySelectorAll(
+        config.selectors.selectedItemCode + '[value="' + optionValue + '"]'
+      )).some(function activeSelection(input) {
+        const row = input.closest('tr');
+        return Boolean(row && row.isConnected && !row.hidden && window.getComputedStyle(row).display !== 'none');
+      });
+    }
+
+    function ensureNativeSelection(bundle, optionValue, attempt) {
+      const retryDelays = [250, 450, 700];
+      window.setTimeout(function retrySwallowedNativeClick() {
+        if (hasActiveNativeSelection(optionValue)) return;
+        try {
+          controller.add(bundle.quantity);
+        } catch (error) {
+          isSubmitting = false;
+          notice.textContent = '옵션을 다시 추가하지 못했습니다. 잠시 후 다시 시도해 주세요.';
+          console.error(error);
+          return;
+        }
+        if (attempt + 1 < retryDelays.length) {
+          ensureNativeSelection(bundle, optionValue, attempt + 1);
+        }
+      }, retryDelays[attempt]);
     }
 
     function showToast(message, tone) {
@@ -448,6 +484,11 @@
           deleteImage.parentElement.classList.add('pick-options__native-delete');
           deleteImage.alt = '선택상품 삭제';
         }
+        const nativeQuantityInput = row.querySelector('.quantity input, input.quantity_opt');
+        if (nativeQuantityInput) {
+          if (!nativeQuantityInput.value) nativeQuantityInput.value = '1';
+          nativeQuantityInput.setAttribute('aria-label', '선택상품 수량');
+        }
       });
       selectedHeading.hidden = controller.selectedValues().length === 0;
     }
@@ -455,12 +496,21 @@
     function syncNativeQuantityControls() {
       Array.from(totalProducts.querySelectorAll(config.selectors.selectedItemCode)).forEach(function syncRow(input) {
         const row = input.closest('tr');
-        const up = row && row.querySelector('.quantity .up');
+        const up = row && row.querySelector(
+          '.quantity .up, .quantity .qtyUp, .quantity .eProductQuantityUpClass, ' +
+          '.quantity a[class*="QuantityUp"], .quantity a[class*="qtyUp"], ' +
+          '.up.eProductQuantityUpClass, a[data-target$="_up"]'
+        );
         const state = controller.stateForOptionValue(input.value);
         if (!up || !state) return;
         const limited = state.selectedCount >= state.maxCount;
         up.classList.toggle('is-limit-disabled', limited);
         up.setAttribute('aria-disabled', String(limited));
+        if (limited) {
+          up.setAttribute('tabindex', '-1');
+        } else {
+          up.removeAttribute('tabindex');
+        }
       });
     }
 
@@ -526,6 +576,13 @@
           return;
         }
         if (optionValue) {
+          // 삭제 후 같은 suffix를 재사용할 때 남아 있는 이전 UI 메타데이터만 제거한다.
+          // 서로 다른 suffix(_1, _2)는 맛 구성이 같아도 각각 정상적으로 유지한다.
+          for (let index = completedSelections.length - 1; index >= 0; index -= 1) {
+            if (completedSelections[index].optionValue === optionValue) {
+              completedSelections.splice(index, 1);
+            }
+          }
           completedSelections.push({
             bundle: bundle,
             flavors: flavors,
@@ -534,6 +591,7 @@
           });
           renderCompleted();
           showToast('선택한 상품이 추가되었습니다', 'success');
+          ensureNativeSelection(bundle, optionValue, 0);
           submitUnlockTimer = window.setTimeout(function unlockStalledSubmission() {
             isSubmitting = false;
             sync();
@@ -583,7 +641,27 @@
     }, true);
 
     totalProducts.addEventListener('click', function guardNativeQuantity(event) {
-      const up = event.target.closest('.quantity .up');
+      const down = event.target.closest(
+        '.quantity .down, .quantity .qtyDown, .quantity .eProductQuantityDownClass, ' +
+        '.quantity a[class*="QuantityDown"], .quantity a[class*="qtyDown"], ' +
+        '.down.eProductQuantityDownClass, a[data-target$="_down"]'
+      );
+      if (down) {
+        const row = down.closest('tr');
+        const quantityInput = row && row.querySelector('.quantity input, input.quantity_opt');
+        if (quantityInput && (Number(quantityInput.value) || 1) <= 1) {
+          event.preventDefault();
+          event.stopImmediatePropagation();
+          showToast(config.ui.minimumQuantityMessage, 'warning');
+          return;
+        }
+      }
+
+      const up = event.target.closest(
+        '.quantity .up, .quantity .qtyUp, .quantity .eProductQuantityUpClass, ' +
+        '.quantity a[class*="QuantityUp"], .quantity a[class*="qtyUp"], ' +
+        '.up.eProductQuantityUpClass, a[data-target$="_up"]'
+      );
       if (up) {
         const row = up.closest('tr');
         const itemCode = row && row.querySelector(config.selectors.selectedItemCode);
@@ -608,6 +686,17 @@
       const itemCode = row && row.querySelector(config.selectors.selectedItemCode);
       const state = itemCode && controller.stateForOptionValue(itemCode.value);
       if (!state) return;
+      if (!quantityInput.value || Number(quantityInput.value) < 1) {
+        window.setTimeout(function restoreMinimumQuantity() {
+          quantityInput.value = '1';
+          quantityInput.setAttribute('value', '1');
+          quantityInput.dispatchEvent(new Event('input', { bubbles: true }));
+          quantityInput.dispatchEvent(new Event('change', { bubbles: true }));
+          sync();
+          renderCompleted();
+        }, 0);
+        return;
+      }
       const current = Math.max(1, Number(quantityInput.value) || 1);
       const ownEntry = Array.from(totalProducts.querySelectorAll(config.selectors.selectedItemCode))
         .find(function sameRow(input) { return input.closest('tr') === row; });

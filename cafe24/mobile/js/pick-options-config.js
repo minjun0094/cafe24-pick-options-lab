@@ -3,12 +3,17 @@
  *
  * 옵션값, 노출 가격, 뱃지와 설명은 이 파일에서만 관리한다.
  * options 배열의 순서가 동일 개입수의 추가 순서(_1, _2, ...)다.
+ *
+ * 일반 수정: ui, flavors, bundles
+ * 연동 수정: target, selectors, option, events
  */
 (function registerPickOptionsConfig(window) {
   'use strict';
 
   const config = {
     version: 3,
+
+    // Cafe24 연동 영역: 상품이나 스킨 DOM 구조가 바뀔 때만 수정한다.
     target: {
       productNos: ['11'],
       productNoQueryKey: 'product_no',
@@ -32,6 +37,8 @@
       unavailableClasses: ['ec-product-disabled', 'ec-product-soldout'],
       labelPattern: /^(\d+)개입_(\d+)(?:\s*\([^)]*\))?$/,
     },
+
+    // 일반 수정 영역: 화면 문구를 관리한다.
     ui: {
       heading: '옵션 선택 (필수)',
       description: '원하는 개입수를 선택해 주세요.',
@@ -56,7 +63,10 @@
       newLabel: '신제품 출시!',
       bestLabel: 'BEST',
       selectOptionMessage: '옵션을 선택해 주세요',
-      selectionGuideTemplate: '현재 {current}개 선택됨 · 옵션을 {remaining}개 더 선택해 주세요',
+      minimumQuantityMessage: '최소 주문수량은 1개입니다',
+      selectionGuideCurrentTemplate: '현재 {current}개 선택됨 · 옵션을 ',
+      selectionGuideRemainingTemplate: '{remaining}개 더 선택',
+      selectionGuideSuffix: '해 주세요',
     },
     flavorUnitQuantity: 10,
     shippingProgress: {
@@ -64,6 +74,8 @@
       completeMessage: '무료배송 혜택을 받았어요',
       thresholdUnit: '만원',
     },
+
+    // 일반 수정 영역: 맛별 표시 정보와 선택 가능 상태를 관리한다.
     // image가 비어 있으면 플레이스홀더가 표시된다.
     // Cafe24에 이미지를 올린 뒤 image 값만 /web/upload/... URL로 교체한다.
     // calories/protein은 숫자만 입력한다. 빈 값이면 화면에 표시하지 않는다.
@@ -78,6 +90,8 @@
       { id: 'honey-soy', name: '허니소이맛', packQuantity: 10, calories: '125', protein: '18', isNew: false, isBest: false, soldOut: false, image: 'https://ecimg.cafe24img.com/pg3139b63113993048/minjun077/web/egnis/flavors/honey-soy.png' },
       { id: 'black-garlic', name: '블랙갈릭맛', packQuantity: 10, calories: '125', protein: '18', isNew: false, isBest: false, soldOut: false, image: 'https://ecimg.cafe24img.com/pg3139b63113993048/minjun077/web/egnis/flavors/black-garlic.png' },
     ],
+
+    // 일반 수정 영역: 개입수별 가격, 문구, suffix 순서를 관리한다.
     bundles: [
       {
         quantity: 10,
@@ -86,7 +100,7 @@
         unitPrice: 2470,
         badge: '',
         badgeTone: 'accent',
-        priceNote: '25% 할인',
+        priceNote: '(25% 할인)',
         options: [
           { suffix: 1, value: 'P000000L000A' },
           { suffix: 2, value: 'P000000L000B' },
@@ -99,7 +113,7 @@
         unitPrice: 2350,
         badge: '가장 많이 사요',
         badgeTone: 'accent',
-        priceNote: '29% 할인',
+        priceNote: '(29% 할인)',
         options: [
           { suffix: 1, value: 'P000000L000C' },
           { suffix: 2, value: 'P000000L000D' },
@@ -112,7 +126,7 @@
         unitPrice: 2230,
         badge: '',
         badgeTone: 'accent',
-        priceNote: '32% 할인',
+        priceNote: '(32% 할인)',
         options: [
           { suffix: 1, value: 'P000000L000E' },
           { suffix: 2, value: 'P000000L000F' },
@@ -125,13 +139,15 @@
         unitPrice: 1960,
         badge: '최대할인',
         badgeTone: 'danger',
-        priceNote: '41% 할인',
+        priceNote: '(41% 할인)',
         options: [
           { suffix: 1, value: 'P000000L000G' },
           { suffix: 2, value: 'P000000L000H' },
         ],
       },
     ],
+
+    // 내부 이벤트명: 외부 연동 코드가 없는 경우 수정하지 않는다.
     events: {
       configReady: 'pick-options:config-ready',
       ready: 'pick-options:ready',

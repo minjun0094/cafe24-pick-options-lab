@@ -110,20 +110,24 @@
 }
 
 .pick-options__card.is-selected .pick-options__check {
-  border-color: var(--pick-accent);
-  background: var(--pick-accent);
+  border: 2px solid var(--pick-accent);
+  background: #fff;
 }
 
 .pick-options__card.is-selected .pick-options__check::after {
   content: '';
   position: absolute;
-  top: 4px;
-  left: 6px;
-  width: 5px;
-  height: 8px;
-  border-right: 2px solid #fff;
-  border-bottom: 2px solid #fff;
-  transform: rotate(45deg);
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--pick-accent);
+  transform: translate(-50%, -50%);
+}
+
+.pick-options__card.is-selected .pick-options__label {
+  color: var(--pick-accent);
 }
 
 .pick-options__price-block {
@@ -180,10 +184,10 @@
 }
 
 .pick-options__price-note {
-  margin-left: 2px;
+  margin-left: 3px;
   color: var(--pick-muted);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
   line-height: 20px;
   white-space: nowrap;
 }
@@ -478,6 +482,12 @@
   border-top-color: #202020;
 }
 
+.pick-options__selection-guide strong {
+  color: var(--pick-accent);
+  font: inherit;
+  font-weight: 700;
+}
+
 .pick-options__selection-guide[hidden] {
   display: none;
 }
@@ -586,6 +596,7 @@
 .pick-options-enhanced #totalProducts tr,
 .pick-options-enhanced #totalProducts td,
 .pick-options-enhanced #totalProducts th {
+  box-sizing: border-box;
   border: 0 !important;
   box-shadow: none !important;
 }
@@ -635,10 +646,14 @@
 .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity {
   display: inline-grid;
   grid-template-columns: 28px 30px 28px;
+  width: 86px !important;
+  min-width: 86px !important;
   height: 30px;
-  border: 1px solid #ddd;
+  box-sizing: border-box;
+  border: 1px solid #d8d8d8 !important;
   border-radius: 3px;
   background: #fff;
+  overflow: hidden;
 }
 
 .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity input {
@@ -657,6 +672,16 @@
   height: 28px;
   background: #fff;
   font-size: 0;
+  border: 0 !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+}
+
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity a:hover,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity a:focus,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-delete:hover,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-delete:focus {
+  text-decoration: none !important;
 }
 
 .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity a::after {
@@ -674,21 +699,34 @@
   grid-row: 1;
 }
 
-.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up {
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .qtyUp,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .eProductQuantityUpClass,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity a[data-target$='_up'] {
   grid-column: 3;
   grid-row: 1;
 }
 
 .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .down::after { content: '−'; }
-.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up::after { content: '+'; }
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up::after,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .qtyUp::after,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .eProductQuantityUpClass::after,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity a[data-target$='_up']::after { content: '+'; }
 .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity img { display: none; }
 
-.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up.is-limit-disabled {
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up.is-limit-disabled,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .qtyUp.is-limit-disabled,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .eProductQuantityUpClass.is-limit-disabled,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity a[data-target$='_up'].is-limit-disabled {
   background: #f2f2f2;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
-.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up.is-limit-disabled::after {
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up.is-limit-disabled::after,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .qtyUp.is-limit-disabled::after,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .eProductQuantityUpClass.is-limit-disabled::after,
+.pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity a[data-target$='_up'].is-limit-disabled::after {
   color: #bbb;
 }
 
