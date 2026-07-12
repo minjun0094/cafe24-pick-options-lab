@@ -60,7 +60,7 @@
     },
     flavorUnitQuantity: 10,
     shippingProgress: {
-      enabled: true,
+      enabled: false,
       completeMessage: '무료배송 혜택을 받았어요',
       thresholdUnit: '만원',
     },

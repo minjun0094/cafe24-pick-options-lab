@@ -65,7 +65,7 @@
       return Array.from(totalProducts.querySelectorAll(config.selectors.selectedItemCode))
         .map(function selectedEntry(input) {
           const row = input.closest('tr');
-          const quantityInput = row && row.querySelector('.quantity input');
+          const quantityInput = row && row.querySelector('.quantity input, input.quantity_opt');
           const quantity = Math.max(1, Number(quantityInput && quantityInput.value) || 1);
           return { value: input.value, quantity: quantity, row: row };
         });
@@ -212,7 +212,8 @@
     function quantityUpButton(row) {
       return row && row.querySelector(
         '.quantity .up, .quantity .qtyUp, .quantity .eProductQuantityUpClass, ' +
-        '.quantity a[class*="QuantityUp"], .quantity a[class*="qtyUp"]'
+        '.quantity a[class*="QuantityUp"], .quantity a[class*="qtyUp"], ' +
+        '.up.eProductQuantityUpClass, a[data-target$="_up"]'
       );
     }
 
@@ -343,11 +344,13 @@
       if (!draft) {
         flavorPicker.hidden = true;
         flavorPicker.innerHTML = '';
+        document.documentElement.classList.remove('pick-options-flavor-open');
         return;
       }
       const targetUnits = draft.bundle.quantity / config.flavorUnitQuantity;
       const currentUnits = draftTotalUnits();
       flavorPicker.hidden = false;
+      document.documentElement.classList.add('pick-options-flavor-open');
       flavorPicker.innerHTML =
         '<div class="pick-options__flavor-head">' +
           '<div><strong class="pick-options__flavor-title"></strong><p class="pick-options__flavor-description"></p></div>' +
@@ -504,6 +507,10 @@
           deleteImage.parentElement.classList.add('pick-options__native-delete');
           deleteImage.alt = '선택상품 삭제';
         }
+        const nativeQuantityInput = row.querySelector('.quantity input, input.quantity_opt');
+        if (nativeQuantityInput && nativeQuantityInput.parentElement) {
+          nativeQuantityInput.parentElement.classList.add('pick-options__native-quantity');
+        }
       });
       selectedHeading.hidden = controller.selectedValues().length === 0;
     }
@@ -620,6 +627,7 @@
       renderFlavorPicker();
     });
 
+
     toggle.addEventListener('click', function togglePanel() {
       const expanded = toggle.getAttribute('aria-expanded') === 'true';
       toggle.setAttribute('aria-expanded', String(!expanded));
@@ -641,7 +649,8 @@
     totalProducts.addEventListener('click', function guardNativeQuantity(event) {
       const up = event.target.closest(
         '.quantity .up, .quantity .qtyUp, .quantity .eProductQuantityUpClass, ' +
-        '.quantity a[class*="QuantityUp"], .quantity a[class*="qtyUp"]'
+        '.quantity a[class*="QuantityUp"], .quantity a[class*="qtyUp"], ' +
+        '.up.eProductQuantityUpClass, a[data-target$="_up"]'
       );
       if (up) {
         const row = up.closest('tr');
@@ -662,7 +671,7 @@
     }, true);
 
     totalProducts.addEventListener('input', function clampNativeQuantity(event) {
-      const quantityInput = event.target.closest('.quantity input');
+      const quantityInput = event.target.closest('.quantity input, input.quantity_opt');
       if (!quantityInput) return;
       const row = quantityInput.closest('tr');
       const itemCode = row && row.querySelector(config.selectors.selectedItemCode);

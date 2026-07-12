@@ -8,18 +8,6 @@
   --pick-radius: 4px;
 }
 
-/* 모바일 스킨에서는 고정 폭을 만들지 않고 옵션 영역만 화면 폭을 사용한다. */
-body #wrap #container {
-  width: auto !important;
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-}
-
-body #wrap #container #contents {
-  float: none !important;
-  width: auto !important;
-}
-
 .pick-options,
 .pick-options * {
   box-sizing: border-box;
@@ -832,6 +820,10 @@ body #wrap #container #contents {
 
 
 @media (max-width: 767px) {
+  html.pick-options-flavor-open #orderFixArea {
+    display: none !important;
+  }
+
   .pick-options {
     width: 100%;
     margin: 14px 0 20px;
@@ -935,18 +927,51 @@ body #wrap #container #contents {
     padding-right: 24px;
   }
 
-  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity {
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity,
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-quantity {
     grid-column: 1;
     grid-row: 2;
     align-self: center;
     justify-self: start;
+    display: inline-grid !important;
     grid-template-columns: 28px 30px 28px !important;
     width: 86px !important;
     height: 30px !important;
     margin: 0 !important;
+    overflow: hidden;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    background: #fff;
+    font-size: 0;
   }
 
-  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity input {
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-quantity a {
+    display: grid !important;
+    place-items: center;
+    margin: 0 !important;
+    background: #fff;
+    font-size: 0;
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-quantity a::after {
+    color: #555;
+    font-size: 15px;
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-quantity .down::after {
+    content: '−';
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-quantity .up::after {
+    content: '+';
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-quantity img {
+    display: none !important;
+  }
+
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity input,
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-quantity input {
     position: static !important;
     grid-column: 2 !important;
     grid-row: 1 !important;
@@ -955,7 +980,8 @@ body #wrap #container #contents {
     margin: 0 !important;
   }
 
-  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .down {
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .down,
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-quantity .down {
     position: static !important;
     grid-column: 1 !important;
     grid-row: 1 !important;
@@ -965,7 +991,9 @@ body #wrap #container #contents {
 
   .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .up,
   .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .qtyUp,
-  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .eProductQuantityUpClass {
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .quantity .eProductQuantityUpClass,
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-quantity .up,
+  .pick-options-enhanced #totalProducts tr.pick-options__native-item .pick-options__native-quantity .eProductQuantityUpClass {
     position: static !important;
     grid-column: 3 !important;
     grid-row: 1 !important;

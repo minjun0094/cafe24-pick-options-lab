@@ -8,18 +8,6 @@
   --pick-radius: 4px;
 }
 
-/* 베이직 스킨의 사이드바 예약 폭을 제거한 상품 상세 전용 레이아웃 */
-body #wrap #container {
-  width: 1014px !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-body #wrap #container #contents {
-  float: none !important;
-  width: 100% !important;
-}
-
 .pick-options,
 .pick-options * {
   box-sizing: border-box;
