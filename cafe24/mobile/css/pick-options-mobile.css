@@ -1,0 +1,6 @@
+/* Cafe24 모바일 스킨 전용 보정 */
+.pick-options-enhanced #totalProducts tr.pick-options__native-item {
+  background: transparent !important;
+}
+
+
