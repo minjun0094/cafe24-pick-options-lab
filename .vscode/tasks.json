@@ -1,0 +1,43 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Cafe24: watch and deploy",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "scripts/watch-cafe24-assets.js"
+      ],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "cafe24-sync",
+        "pattern": {
+          "regexp": "^\\[cafe24-sync\\] (.*)$",
+          "message": 1
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\[cafe24-sync\\] ready$",
+          "endsPattern": "^\\[cafe24-sync\\] watching"
+        }
+      },
+      "runOptions": {
+        "runOn": "folderOpen"
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Cafe24: build once",
+      "type": "shell",
+      "command": "node",
+      "args": [
+        "scripts/watch-cafe24-assets.js",
+        "--once"
+      ],
+      "problemMatcher": []
+    }
+  ]
+}
