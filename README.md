@@ -47,7 +47,48 @@ Cafe24가 이미 관리하는 상품 구성과 가격은 원본 DOM에서 읽고
 - 수량 직접 입력과 증가 버튼에서도 suffix 기반 최대 횟수 제한
 - 이미지 로딩 실패 시 텍스트 플레이스홀더 표시
 
-맛은 `10개입` 단위로 선택합니다. 예를 들어 30개입을 고르면 맛 수량 합계가 3이 되어야 선택을 완료할 수 있습니다.
+맛 선택 단위는 고정값이 아니라 `pick-options-config.js`의 `flavorUnitQuantity`로 관리합니다.
+
+```js
+flavorUnitQuantity: 10,
+```
+
+선택해야 하는 맛 수량은 다음 식으로 계산합니다.
+
+```text
+필요한 맛 선택 수량 = 선택한 bundle 개입수 ÷ flavorUnitQuantity
+```
+
+현재 설정값이 `10`이므로 다음과 같이 동작합니다.
+
+| 선택한 구성 | 계산 | 필요한 맛 수량 |
+| ---: | ---: | ---: |
+| 10개입 | 10 ÷ 10 | 1 |
+| 30개입 | 30 ÷ 10 | 3 |
+| 50개입 | 50 ÷ 10 | 5 |
+| 100개입 | 100 ÷ 10 | 10 |
+
+운영 상품이 5개 단위 맛 묶음으로 변경되면 설정만 다음처럼 바꿀 수 있습니다.
+
+```js
+flavorUnitQuantity: 5,
+```
+
+이 경우 30개입은 `30 ÷ 5 = 6`이므로 맛 수량 합계가 6일 때 선택 완료 버튼이 활성화됩니다.
+
+`flavorUnitQuantity`는 실제 선택 수량 검증에 사용하는 전역 단위이고, 각 맛의 `packQuantity`는 맛 이름 옆에 표시하는 개입수입니다.
+
+```js
+{
+  id: 'tteokbokki',
+  name: '떡볶이맛',
+  packQuantity: 10,
+}
+```
+
+일반 운영에서는 모든 맛의 `packQuantity`를 `flavorUnitQuantity`와 동일하게 맞춥니다. `packQuantity`만 변경하면 화면 문구만 바뀌고 선택 완료 계산은 바뀌지 않습니다.
+
+또한 Cafe24에서 자동으로 읽은 모든 bundle 개입수는 `flavorUnitQuantity`로 나누어떨어져야 합니다. 예를 들어 30개입 구성에 `flavorUnitQuantity: 8`을 사용하면 필요한 맛 수량이 `3.75`가 되어 정수 수량으로 맞출 수 없으므로 선택 완료가 불가능합니다.
 
 기본 옵션 DOM은 삭제하지 않습니다. 필수 DOM 확인과 커스텀 UI 초기화가 모두 성공한 경우에만 기본 옵션을 화면에서 숨깁니다. 초기화에 실패하면 Cafe24 기본 옵션과 구매 흐름을 그대로 사용할 수 있습니다.
 
@@ -60,6 +101,7 @@ Cafe24가 이미 관리하는 상품 구성과 가격은 원본 DOM에서 읽고
 | `ui` | 제목, 버튼, 상태 및 안내 문구 | 가능 |
 | `flavors` | 맛 이름, 이미지, 영양정보, 신제품·BEST·품절 상태 | 가능 |
 | `bundleMeta` | 개입수별 추천·최대할인 등 마케팅 배지 | 가능 |
+| `flavorUnitQuantity` | 맛 한 번 선택이 의미하는 상품 개수 | 상품 구성 변경 시 |
 | `assets` | Cafe24 이미지 업로드 기본 경로와 캐시 버전 | 이미지 배포 시 |
 | `target` | 적용 상품 번호 | 상품 변경 시 |
 | `selectors` | Cafe24 원본 DOM 셀렉터 | 스킨 구조 변경 시 |
@@ -78,6 +120,306 @@ bundleMeta: {
 ```
 
 설정은 `deepFreeze()`로 고정해 실행 중 의도하지 않은 변경을 방지하고, 준비·선택 변경·최대 횟수 도달 이벤트를 외부에서 구독할 수 있도록 커스텀 이벤트를 제공합니다.
+
+#### `pick-options-config.js` 수정 가이드
+
+설정은 수정 난이도와 영향 범위에 따라 세 단계로 구분합니다.
+
+| 단계 | 대상 | 수정 권한 |
+| --- | --- | --- |
+| 안전 | `ui`, `flavors`, `bundleMeta`, `assets.version` | 일반 운영 개발자 |
+| 주의 | `flavorUnitQuantity`, `target`, `shippingProgress` | 상품 구성을 이해하는 개발자 |
+| 연동 | `selectors`, `option`, `events`, `assets.flavorImageBaseUrl` | Cafe24 DOM과 연동 코드를 확인할 수 있는 개발자 |
+
+설정 객체는 페이지 실행 중 `deepFreeze()`되므로 브라우저 콘솔이나 다른 JS에서 직접 값을 변경할 수 없습니다. 값을 수정할 때는 원본 파일을 고친 뒤 PC와 Mobile 배포본을 다시 생성해야 합니다.
+
+##### `version`
+
+```js
+version: 3,
+```
+
+설정 구조의 버전을 구분하는 값입니다. 현재 UI 계산에는 직접 사용하지 않지만 설정 스키마가 변경될 때 버전을 올려 외부 연동 코드가 호환성을 판단할 수 있게 합니다. 일반 문구나 맛 정보만 변경할 때는 수정하지 않습니다.
+
+##### `target`: 적용 상품 제한
+
+```js
+target: {
+  productNos: [],
+  productNoQueryKey: 'product_no',
+},
+```
+
+| 필드 | 타입 | 설명 |
+| --- | --- | --- |
+| `productNos` | `string[]` | UI를 적용할 Cafe24 상품 번호 목록 |
+| `productNoQueryKey` | `string` | URL에서 상품 번호를 읽을 쿼리 키 |
+
+`productNos`가 빈 배열이면 옵션 이름 규칙과 필수 DOM이 맞는 모든 상품에 적용합니다.
+
+```js
+// 상품 12에만 적용
+productNos: ['12'],
+
+// 상품 12와 15에 적용
+productNos: ['12', '15'],
+
+// 호환되는 모든 상품에 적용
+productNos: [],
+```
+
+URL에서 읽은 상품 번호는 문자열이므로 `12`가 아니라 `'12'`로 입력합니다.
+
+##### `ui`: 화면 문구
+
+| 필드 | 표시 위치 또는 역할 | 토큰 |
+| --- | --- | --- |
+| `heading` | 옵션 UI 제목 | 없음 |
+| `description` | 제목 아래 안내 문구 | 없음 |
+| `soldOutLabel` | 사용할 수 없는 개입수 카드 | 없음 |
+| `limitLabel` | suffix 최대 횟수 도달 안내 | 없음 |
+| `countTemplate` | 현재 선택 횟수 | `{selected}`, `{max}` |
+| `currency` | 가격 뒤 통화 단위 | 없음 |
+| `flavorHeading` | 맛 선택 영역 제목 | `{label}` |
+| `flavorDescription` | 맛 선택 영역 설명 | 없음 |
+| `flavorUnitLabel` | 선택상품 맛 요약의 단위 문구 | 없음 |
+| `totalLabel` | 맛 선택 합계 제목 | 없음 |
+| `selectedTotalTemplate` | 현재·목표 수량 | `{current}`, `{target}` |
+| `completeLabel` | 선택 완료 버튼 | 없음 |
+| `cancelLabel` | 닫기 버튼 접근성 문구 | 없음 |
+| `decreaseLabel` | 감소 버튼 접근성 문구 | 없음 |
+| `increaseLabel` | 증가 버튼 접근성 문구 | 없음 |
+| `imageAltSuffix` | 이미지 대체 텍스트 뒤 문구 | 없음 |
+| `newLabel` | 신제품 상태 문구 | 없음 |
+| `bestLabel` | BEST 상태 문구 | 없음 |
+| `selectOptionMessage` | 옵션 없이 구매할 때 토스트 | 없음 |
+| `minimumQuantityMessage` | 수량을 1보다 작게 만들 때 토스트 | 없음 |
+| `selectionGuideCurrentTemplate` | 현재 맛 선택 수량 안내 | `{current}` |
+| `selectionGuideRemainingTemplate` | 남은 수량 강조 문구 | `{remaining}` |
+| `selectionGuideSuffix` | 남은 수량 안내의 마지막 문구 | 없음 |
+
+템플릿 토큰은 코드가 실제 값으로 치환하므로 문구를 수정할 때 삭제하지 않는 것을 권장합니다.
+
+```js
+countTemplate: '{selected}/{max}회 선택',
+selectedTotalTemplate: '({current}/{target}개)',
+selectionGuideRemainingTemplate: '{remaining}개 더 선택',
+```
+
+`addLabel`, `remainingTemplate`, `unitPrefix`, `selectionSummaryLabel`은 이전 UI 또는 확장 UI 호환을 위해 유지한 예약 문구입니다. 현재 화면에서 직접 사용하려면 `pick-options.js`의 렌더링 코드 연결도 함께 확인합니다.
+
+##### `flavorUnitQuantity`: 맛 선택 계산 단위
+
+```js
+flavorUnitQuantity: 10,
+```
+
+한 번의 맛 수량 선택이 실제 상품 몇 개를 의미하는지 지정합니다.
+
+```text
+필요한 맛 수량 = bundle 개입수 ÷ flavorUnitQuantity
+```
+
+변경 전 다음 조건을 모두 확인합니다.
+
+1. Cafe24의 모든 bundle 개입수가 이 값으로 나누어떨어져야 합니다.
+2. 모든 `flavors[].packQuantity` 표시값도 같은 단위로 맞춥니다.
+3. 기존에 저장된 맛 설명과 운영 문구가 새 단위와 일치해야 합니다.
+
+##### `flavors`: 맛 카드 데이터
+
+```js
+{
+  id: 'tteokbokki',
+  name: '떡볶이맛',
+  packQuantity: 10,
+  calories: '130',
+  protein: '18',
+  isNew: true,
+  isBest: false,
+  soldOut: false,
+  image: 'tteokbokki.webp',
+}
+```
+
+| 필드 | 타입 | 설명 및 주의사항 |
+| --- | --- | --- |
+| `id` | `string` | 맛을 구분하는 고유값. 중복 금지, 운영 중 불필요한 변경 금지 |
+| `name` | `string` | 화면과 선택상품 요약에 표시할 이름 |
+| `packQuantity` | `number` | 맛 이름 옆 표시값. 실제 검증은 `flavorUnitQuantity`가 담당 |
+| `calories` | `string` | kcal 숫자. `''`이면 칼로리 문구를 숨김 |
+| `protein` | `string` | 단백질 g 숫자. `''`이면 단백질 문구를 숨김 |
+| `isNew` | `boolean` | `true`이면 `ui.newLabel` 표시 |
+| `isBest` | `boolean` | `true`이면 `ui.bestLabel` 표시 |
+| `soldOut` | `boolean` | `true`이면 해당 맛 증가 버튼 비활성화 |
+| `image` | `string` | WebP 파일명, 절대 URL 또는 루트 상대 경로 |
+
+이미지 파일명만 입력하면 `assets.flavorImageBaseUrl` 뒤에 자동으로 결합합니다.
+
+```js
+image: 'tteokbokki.webp'
+```
+
+전체 URL이나 `/`로 시작하는 경로를 입력하면 기본 경로를 붙이지 않고 그대로 사용합니다.
+
+```js
+image: 'https://example.com/flavors/tteokbokki.webp'
+image: '/images/tteokbokki.webp'
+```
+
+`soldOut`은 커스텀 맛 선택 UI만 비활성화합니다. Cafe24의 실제 품목 재고나 주문 가능 상태를 변경하지 않습니다.
+
+맛 추가 순서:
+
+1. WebP 이미지를 `cafe24/assets/flavors`에 추가합니다.
+2. `flavors` 배열에 고유한 `id`와 표시 정보를 추가합니다.
+3. SFTP 이미지 컨텍스트로 이미지를 업로드합니다.
+4. PC와 Mobile에서 이미지·상태·수량 선택을 확인합니다.
+
+##### `bundleMeta`: 개입수 카드 배지
+
+```js
+bundleMeta: {
+  30: { badge: '가장 많이 사요', badgeTone: 'accent' },
+  100: { badge: '최대할인', badgeTone: 'danger' },
+},
+```
+
+키는 Cafe24 옵션 라벨에서 읽은 개입수와 일치해야 합니다. 해당 개입수가 Cafe24에 없으면 배지도 표시되지 않습니다.
+
+| 필드 | 값 | 설명 |
+| --- | --- | --- |
+| `badge` | 문자열 | 카드에 표시할 마케팅 문구 |
+| `badgeTone` | `'accent'` | 기본 강조 색상 |
+| `badgeTone` | `'danger'` | 최대할인 등 강한 강조 색상 |
+
+배지를 제거하려면 해당 개입수 행을 삭제합니다. 가격과 할인율은 `bundleMeta`에서 입력하지 않습니다.
+
+##### `assets`: 이미지 경로와 캐시
+
+```js
+assets: {
+  flavorImageBaseUrl: 'https://.../web/upload/egnis/flavors/',
+  version: '20260718',
+},
+```
+
+| 필드 | 설명 |
+| --- | --- |
+| `flavorImageBaseUrl` | 파일명 형태의 맛 이미지를 불러올 Cafe24 CDN 기본 경로 |
+| `version` | 이미지 URL 뒤에 붙는 캐시 갱신 값 |
+
+`flavorImageBaseUrl`은 마지막 `/`까지 입력합니다. Cafe24 계정이나 이미지 업로드 폴더가 바뀔 때만 수정합니다.
+
+같은 이름의 이미지를 교체했는데 이전 이미지가 보이면 `version`을 변경합니다.
+
+```js
+version: '20260719',
+```
+
+결과 URL은 다음과 같습니다.
+
+```text
+{flavorImageBaseUrl}tteokbokki.webp?v=20260719
+```
+
+##### `shippingProgress`: 무료배송 진행 UI
+
+```js
+shippingProgress: {
+  enabled: false,
+  completeMessage: '무료배송 혜택을 받았어요',
+  thresholdUnit: '만원',
+},
+```
+
+현재 과제 범위에서는 `enabled: false`로 비활성화합니다. 활성화하면 Cafe24 배송비 DOM에서 무료배송 기준 금액을 읽어 총금액에 따른 진행 상태를 표시합니다. 스킨의 배송비 문구 형식이 다르면 정상적으로 계산되지 않을 수 있으므로 활성화 전 `selectors.deliveryPrice`와 실제 DOM을 확인합니다.
+
+`thresholdUnit`은 확장 표시용 예약 설정입니다. 현재 진행 UI의 실제 금액 표시는 `ui.currency`를 사용합니다.
+
+##### `selectors`: Cafe24 DOM 연결
+
+| 필드 | 찾는 대상 |
+| --- | --- |
+| `optionTable` | 기본 옵션 영역 테이블 |
+| `optionList` | Cafe24 텍스트 버튼 옵션 목록 |
+| `optionItem` | 각 원본 옵션 버튼 항목 |
+| `optionSelect` | Cafe24 원본 `<select>` 옵션 |
+| `totalProducts` | 선택상품 전체 영역 |
+| `totalPrice` | 총금액 영역 |
+| `productPrice` | PC·Mobile 상품 기본 가격 |
+| `deliveryPrice` | 배송비 및 무료배송 기준 문구 |
+| `selectedProduct` | 선택상품 행 호환 셀렉터 |
+| `selectedItemCode` | 선택상품 행의 실제 Cafe24 품목 코드 |
+| `purchaseButton` | 장바구니·바로구매 버튼 |
+
+이 영역은 스킨 HTML 구조가 바뀔 때만 수정합니다. 수정 전 PC와 Mobile 개발자도구에서 다음 조건을 확인합니다.
+
+1. `optionTable`, `optionList`, `optionSelect`가 상품 옵션 영역에서 각각 하나만 선택되는지 확인합니다.
+2. `selectedItemCode`가 각 선택상품 행의 실제 품목값을 가리키는지 확인합니다.
+3. `purchaseButton`이 다른 링크나 버튼까지 선택하지 않는지 확인합니다.
+4. PC와 Mobile에서 같은 셀렉터가 모두 동작하는지 확인합니다.
+
+필수 DOM을 찾지 못하면 커스텀 UI는 초기화를 중단하고 Cafe24 기본 옵션을 유지합니다.
+
+##### `option`: 옵션 이름과 상태 규칙
+
+```js
+option: {
+  valueAttribute: 'option_value',
+  emptyValues: ['', '*', '**'],
+  selectedClass: 'ec-product-selected',
+  unavailableClasses: ['ec-product-disabled', 'ec-product-soldout'],
+  labelPattern: /^(\d+)개입_(\d+)(?:\s*\([^)]*\))?$/,
+},
+```
+
+| 필드 | 설명 |
+| --- | --- |
+| `valueAttribute` | 원본 옵션 버튼에서 품목 옵션값을 읽을 속성 |
+| `emptyValues` | 실제 상품 옵션으로 처리하지 않을 안내값 |
+| `selectedClass` | Cafe24 선택 상태 호환용 클래스 |
+| `unavailableClasses` | 품절·비활성 옵션으로 판단할 클래스 목록 |
+| `labelPattern` | 옵션명에서 개입수와 suffix를 추출할 정규식 |
+
+`labelPattern`의 첫 번째 캡처 그룹은 개입수, 두 번째 캡처 그룹은 suffix여야 합니다.
+
+```text
+30개입_2 (+5,000원)
+  ├─ 첫 번째 그룹: 30
+  └─ 두 번째 그룹: 2
+```
+
+옵션 이름 규칙을 바꾸면 정규식뿐 아니라 Cafe24 관리자에 등록된 모든 대상 옵션명이 같은 규칙을 따르는지 확인합니다.
+
+##### `events`: 외부 연동 이벤트
+
+| 필드 | 발생 시점 | `event.detail` |
+| --- | --- | --- |
+| `configReady` | 설정 등록 완료 | 전체 설정 객체 |
+| `ready` | UI 초기화 완료 | `controller`, `element` |
+| `selectionChange` | 선택 상태 재계산 완료 | bundle별 `states` |
+| `limitReached` | 추가 가능한 suffix 없음 | `bundle`, `state` |
+
+다른 스크립트에서 이벤트를 구독할 수 있습니다.
+
+```js
+window.addEventListener('pick-options:selection-change', function (event) {
+  console.log(event.detail.states);
+});
+```
+
+이벤트 이름을 변경하면 해당 이벤트를 구독하는 외부 코드도 함께 변경합니다.
+
+##### 설정 변경 후 검증 순서
+
+1. `node --check cafe24/common/pick-options-config.js`로 문법을 확인합니다.
+2. `Cafe24: build once` 또는 감시 작업으로 PC·Mobile 배포본을 생성합니다.
+3. PC와 Mobile에서 대상 상품을 강력 새로고침합니다.
+4. 개입수 카드·가격·배지·이미지·품절 상태를 확인합니다.
+5. 모든 개입수에서 맛 수량 합계와 선택 완료 활성화를 확인합니다.
+6. 반복 선택·삭제·빈 suffix 재사용을 확인합니다.
+7. 수량 직접 입력, 장바구니, 바로구매를 확인합니다.
 
 ### ③ Cafe24 옵션과 동기화한 방식
 
@@ -200,6 +542,7 @@ scripts/
 | 변경 내용 | 수정 위치 |
 | --- | --- |
 | 맛 이름·이미지·영양정보·품절 | `config.flavors` |
+| 맛 선택 단위 | `config.flavorUnitQuantity` 및 `flavors[].packQuantity` |
 | 추천·최대할인 배지 | `config.bundleMeta` |
 | 화면 문구 | `config.ui` |
 | 적용 상품 제한 | `config.target.productNos` |
